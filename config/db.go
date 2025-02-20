@@ -1,12 +1,16 @@
 package config
 
-import {
-	"os"
+import (
+	"fmt"
 	"log"
+	"os"
+
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-}
+)
+
+var DB *gorm.DB
 
 func ConnectDB() {
 	err := godotenv.Load()
@@ -18,8 +22,9 @@ func ConnectDB() {
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbName := os.Getenv("POSTGRES_DB")
 	dbPort := os.Getenv("POSTGRES_PORT")
+	dbHost := os.Getenv("POSTGRES_HOST")
 
-	dsn := fmt.Sprintf("host=postgres user=%s password=%s dbname=%s port=%s sslmode=disable", dbUser, dbPassword, dbName, dbPort)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPassword, dbName, dbPort)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -27,6 +32,6 @@ func ConnectDB() {
 	}
 
 	fmt.Println("Successfully connected to PostgreSQL!")
-	_ = db 
+	DB = db
 
 }
