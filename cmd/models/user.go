@@ -1,31 +1,38 @@
 package models
 
 import (
+	"database/sql"
 	"time"
+
+	"gorm.io/gorm"
 )
 
-type JobSeekerModel struct {
-	ID         uint `gorm:"primaryKey"`
-	Name       string
-	Email      string `gorm:"unique"`
-	Gender     string
-	Country    string
-	State      string
-	Phone      string
-	Password   string
-	Experience uint8
-	CV         string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+type JobSeeker struct {
+	gorm.Model
+	FirstName    string
+	LastName     string
+	Email        string `gorm:"unique"`
+	Gender       string
+	Country      string
+	State        string
+	About        string
+	Phone        string
+	Password     string
+	Experience   uint8
+	CV           sql.NullString
+	ProfilePhoto sql.NullString
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
-type EmployerModel struct {
-	ID                 uint `gorm:"primaryKey"`
-	Name               string
+type Employer struct {
+	gorm.Model
+	FirstName          string
+	LastName           string
 	Email              string `gorm:"unique"`
 	Gender             string
-	Country            string
-	State              string
+	Location           Location `gorm:"foreignKey:EmployerID"` // One-to-One Relationship
+	Jobs               []Job    `gorm:"foreignKey:EmployerID"` // One Employer → Many Jobs
 	Phone              string
 	CompanyName        string
 	CompanyAddress     string
@@ -35,8 +42,7 @@ type EmployerModel struct {
 	EmployerType       string
 	About              string
 	Password           string
-	Experience         uint8
-	CV                 string
+	ProfilePhoto       string
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
