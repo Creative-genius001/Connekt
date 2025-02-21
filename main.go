@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/Creative-genius001/Connekt/cmd/api/routes"
 	"github.com/Creative-genius001/Connekt/config"
 	limit "github.com/aviddiviner/gin-limit"
 	"github.com/gin-contrib/cors"
@@ -28,6 +29,9 @@ func main() {
 	//initialise DB
 	config.ConnectDB()
 
+	//init routes
+	routes.InitializeRoutes(router)
+
 	// Configure CORS
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AddAllowHeaders("Authorization")
@@ -45,11 +49,6 @@ func main() {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
 	if s.ListenAndServe(); err != nil {
 		log.Fatal("Failed to start server: %v", err)
 	}
