@@ -1,11 +1,9 @@
 package main
 
 import (
-	"net/http"
-	//   "gorm.io/driver/postgres"
-	//   "gorm.io/gorm"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"time"
 
