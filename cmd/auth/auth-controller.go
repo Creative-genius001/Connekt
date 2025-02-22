@@ -21,15 +21,13 @@ func Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
-	email := form.Email
-	password := form.Password
 
-	user := types.LoginForm{
-		Email:    email,
-		Password: password,
-	}
-	config.DB.Create(&user)
+	// email := form.Email
+	// password := form.Password
+
 	//search database for user with email
+	//result := map[string]interface{}{}
+	//config.DB.Model(&models.{}).First(&result)
 	//hash the password
 	//compare hashes
 	//return success and user details
@@ -62,9 +60,16 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		ProfilePhoto: form.ProfilePhoto,
 	}
 
+	user := models.User{
+		Id:       uuid.New().String(),
+		Email:    form.Email,
+		Password: form.Password,
+		Role:     "talent",
+	}
+
 	//check if user already exist in db
 	var count int64
-	config.DB.Model(&talent).Where("email = ?", form.Email).Count(&count)
+	config.DB.Model(&user).Where("email = ?", form.Email).Count(&count)
 	if count > 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email is already in use"})
 		return
@@ -76,8 +81,16 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 			return
 		}
 		talent.Password = hashedPassword
+		user.Password = hashedPassword
 
 		//add user to database
+		res := config.DB.Create(&user)
+		if res.Error != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+			log.Fatalf("creating user in db failed: %v", res.Error)
+			return
+		}
+
 		result := config.DB.Create(&talent)
 		if result.Error != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})

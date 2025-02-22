@@ -6,6 +6,13 @@ import (
 	"gorm.io/gorm"
 )
 
+type User struct {
+	Id       string `gorm:"type:uuid;;primaryKey;unique"`
+	Email    string `gorm:"unique;not null"`
+	Password string `gorm:"not null"`
+	Role     string `gorm:"type:varchar(20);not null"`
+}
+
 type Talent struct {
 	Id           string `gorm:"type:uuid;primaryKey;unique"`
 	FirstName    string
