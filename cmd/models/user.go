@@ -1,14 +1,13 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 
 	"gorm.io/gorm"
 )
 
-type JobSeeker struct {
-	gorm.Model
+type Talent struct {
+	Id           string `gorm:"type:uuid;primaryKey;unique"`
 	FirstName    string
 	LastName     string
 	Email        string `gorm:"unique"`
@@ -19,8 +18,9 @@ type JobSeeker struct {
 	Phone        string
 	Password     string
 	Experience   uint8
-	CV           sql.NullString
-	ProfilePhoto sql.NullString
+	CV           *string
+	Jobs         []JobApplication `gorm:"foreignKey:TalentId"`
+	ProfilePhoto *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
