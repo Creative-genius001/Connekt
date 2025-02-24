@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
+	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,15 +30,15 @@ func ConnectDB() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		utils.Error("Failed to connect to database:", err, nil)
 	}
 
 	err = db.AutoMigrate(&models.Employer{}, &models.Talent{}, &models.Location{}, &models.Job{}, &models.JobApplication{}, &models.User{})
 	if err != nil {
-		log.Fatal("Migration failed:", err)
+		utils.Error("Migration failed:", err, nil)
 	}
 
-	fmt.Println("Successfully connected to PostgreSQL!")
+	utils.Info("Successfully connected to PostgreSQL!", nil)
 	DB = db
 
 }
