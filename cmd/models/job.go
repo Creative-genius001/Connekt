@@ -8,11 +8,12 @@ import (
 
 type Job struct {
 	Id          string `gorm:"type:uuid;primaryKey;unique"`
-	EmployerID  uint
+	EmployerId  uint
 	Title       string
 	Summary     string
 	Location    string
 	CompanyName string
+	Type        string //on-site or remote
 	IsActive    bool
 	Industry    string
 	Talents     []JobApplication `gorm:"foreignKey:JobId"`

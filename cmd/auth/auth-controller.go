@@ -22,16 +22,45 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-	// email := form.Email
-	// password := form.Password
+	email := form.Email
+	password := form.Password
 
 	//search database for user with email
-	//result := map[string]interface{}{}
-	//config.DB.Model(&models.{}).First(&result)
-	//hash the password
+	var user models.User
+	result := config.DB.Where("email = ?", email).First(&user)
+
+	if result.Error != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
 	//compare hashes
+	psw := utils.CheckPasswordHash(password, user.Password)
+	if !psw {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	token, err := utils.CreateToken(user.Role)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
 	//return success and user details
-	ctx.JSON(http.StatusOK, gin.H{"message": "Login successfullyy", "form": form})
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"user": gin.H{
+			"id":           user.Id,
+			"userId":       user.UserId,
+			"firstName":    user.FirstName,
+			"lastName":     user.LastName,
+			"email":        user.Email,
+			"profilePhoto": user.ProfilePhoto,
+			"role":         user.Role,
+		},
+		"token": token,
+	})
 }
 
 // Register as job seeker
@@ -61,10 +90,14 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 	}
 
 	user := models.User{
-		Id:       uuid.New().String(),
-		Email:    form.Email,
-		Password: form.Password,
-		Role:     "talent",
+		Id:           uuid.New().String(),
+		UserId:       talent.Id,
+		FirstName:    form.FirstName,
+		LastName:     form.LastName,
+		Email:        form.Email,
+		Password:     form.Password,
+		ProfilePhoto: form.ProfilePhoto,
+		Role:         "talent",
 	}
 
 	//check if user already exist in db
@@ -99,7 +132,7 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		}
 
 		//generate jwt token
-		token, err := utils.CreateToken(talent.Id)
+		token, err := utils.CreateToken(user.Role)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			log.Fatalf("error creating jwt: %v", err)
@@ -116,20 +149,118 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 				"firstName":    talent.FirstName,
 				"lastName":     talent.LastName,
 				"email":        talent.Email,
-				"country":      talent.Country,
-				"about":        talent.About,
-				"state":        form.State,
-				"gender":       form.Gender,
-				"phone":        form.Phone,
-				"experience":   form.Experience,
-				"cv":           form.CV,
 				"profilePhoto": form.ProfilePhoto,
-				"token":        token,
-			}})
+				"role":         user.Role,
+			},
+			"token": token,
+		})
 	}
 }
 
 // Register employer
 func RegisterAsEmployer(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"message": "User registered"})
+	//get signup details from body
+	var form types.EmployerForm
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		return
+	}
+
+	employer := models.Employer{
+		Id:                 uuid.New().String(),
+		FirstName:          form.FirstName,
+		LastName:           form.LastName,
+		Email:              form.Email,
+		Password:           form.Password,
+		About:              form.About,
+		Gender:             form.Gender,
+		Phone:              form.Phone,
+		ProfilePhoto:       form.ProfilePhoto,
+		CompanyName:        form.CompanyName,
+		CompanyAddress:     form.CompanyAddress,
+		RegistrationNumber: form.RegistrationNumber,
+		EmployeeNumber:     form.EmployeeNumber,
+		Industry:           form.Industry,
+	}
+
+	location := models.Location{
+		Id:         uuid.New().String(),
+		Country:    form.Country,
+		State:      form.State,
+		EmployerId: employer.Id,
+	}
+
+	user := models.User{
+		Id:           uuid.New().String(),
+		UserId:       employer.Id,
+		FirstName:    form.FirstName,
+		LastName:     form.LastName,
+		Email:        form.Email,
+		Password:     form.Password,
+		ProfilePhoto: form.ProfilePhoto,
+		Role:         "employer",
+	}
+
+	//check if user already exist in db
+	var count int64
+	config.DB.Model(&user).Where("email = ?", form.Email).Count(&count)
+	if count > 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email is already in use"})
+		return
+	} else {
+		//hash password
+		hashedPassword, err := utils.HashPassword(form.Password)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			return
+		}
+		employer.Password = hashedPassword
+		user.Password = hashedPassword
+
+		//add user to database
+		res := config.DB.Create(&user)
+		if res.Error != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+			log.Fatalf("creating user in db failed: %v", res.Error)
+			return
+		}
+
+		result := config.DB.Create(&employer)
+		if result.Error != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+			log.Fatalf("creating user in db failed: %v", result.Error)
+			return
+		}
+
+		ltn := config.DB.Create(&location)
+		if ltn.Error != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+			log.Fatalf("creating user in db failed: %v", ltn.Error)
+			return
+		}
+
+		//generate jwt token
+		token, err := utils.CreateToken(user.Role)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			log.Fatalf("error creating jwt: %v", err)
+			return
+		}
+
+		//send user email for successful registration
+
+		//send token and user data back
+		ctx.JSON(http.StatusCreated, gin.H{
+			"message": "User registered successfully",
+			"user": gin.H{
+				"id":           employer.Id,
+				"firstName":    employer.FirstName,
+				"lastName":     employer.LastName,
+				"email":        employer.Email,
+				"profilePhoto": form.ProfilePhoto,
+				"role":         user.Role,
+			},
+			"token": token,
+		})
+	}
 }

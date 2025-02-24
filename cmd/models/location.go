@@ -2,15 +2,13 @@ package models
 
 import (
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Location struct {
-	gorm.Model
+	Id         string `gorm:"type:uuid;primaryKey;unique"`
 	Country    string
 	State      string
-	EmployerID string
+	EmployerId string
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
