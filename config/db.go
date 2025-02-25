@@ -28,7 +28,9 @@ func ConnectDB() {
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPassword, dbName, dbPort)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		CreateBatchSize: 100,
+	})
 	if err != nil {
 		utils.Error("Failed to connect to database:", err, nil)
 	}
@@ -37,6 +39,33 @@ func ConnectDB() {
 	if err != nil {
 		utils.Error("Migration failed:", err, nil)
 	}
+
+	job, err := Seeding()
+	if err != nil {
+		utils.Error("Seeding failed:", err, nil)
+	}
+
+	var jobs models.Job
+	var count int64
+	db.Model(&jobs).Count(&count)
+	if count == 0 {
+		res := db.CreateInBatches(job, 100)
+		if res.Error != nil {
+			log.Fatal("Failed to insert data:", res.Error)
+		}
+		// if err := db.Create(&jobs).Error; err != nil {
+		// 	fmt.Println("Error seeding data:", err)
+		// } else {
+		// 	fmt.Println("Seeded user data successfully.")
+		// }
+	} else {
+		utils.Info("Users table already has data. Skipping seeding.", nil)
+	}
+
+	// err := db.WithContext(ctx).CreateInBatches(jobs, 100)
+	// if err != nil {
+	// 	utils.Error("Error inserting users: %v", err, nil)
+	// }
 
 	utils.Info("Successfully connected to PostgreSQL!", nil)
 	DB = db

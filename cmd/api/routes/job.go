@@ -7,8 +7,10 @@ import (
 )
 
 func JobRoutes(router *gin.Engine) {
-	jobRouter := router.Group("/api/job/listings")
+	jobRouter := router.Group("/api/job")
+	jobRouter.Use(middleware.JWTAuthMiddleware())
+
 	{
-		jobRouter.GET("/listings", middleware.JWTAuthMiddleware(), controllers.GetJobListing)
+		jobRouter.GET("/listings", controllers.GetJobListing)
 	}
 }

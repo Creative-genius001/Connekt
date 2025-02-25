@@ -23,11 +23,16 @@ func main() {
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
-	router := gin.Default()
+	router := gin.New()
+	router.Use(gin.Recovery())
 	router.Use(limit.MaxAllowed(200))
 
 	//initialise DB
 	config.ConnectDB()
+
+	//loggers initialization
+	router.Use(middleware.LoggerMiddleware())
+	utils.InitLogger()
 
 	//init routes
 	routes.InitializeRoutes(router)
@@ -37,9 +42,6 @@ func main() {
 	corsConfig.AddAllowHeaders("Authorization")
 	corsConfig.AllowOrigins = []string{"*"}
 	router.Use(cors.New(corsConfig))
-
-	router.Use(middleware.LoggerMiddleware())
-	utils.InitLogger()
 
 	//startup server
 	PORT := os.Getenv("PORT")

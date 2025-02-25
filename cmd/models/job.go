@@ -7,25 +7,25 @@ import (
 )
 
 type Job struct {
-	Id          string `gorm:"type:uuid;primaryKey;unique"`
-	EmployerId  uint
-	Title       string
-	Summary     string
-	Location    string
-	CompanyName string
-	Type        string //on-site or remote
-	IsActive    bool
-	Industry    string
-	Talents     []JobApplication `gorm:"foreignKey:JobId"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	Id          string           `gorm:"type:uuid;primaryKey;unique"`
+	EmployerId  string           `json:"EmployerId"`
+	Title       string           `json:"Title"`
+	Summary     string           `json:"Summary"`
+	Location    string           `json:"Location"`
+	CompanyName string           `json:"CompanyName"`
+	Type        string           `json:"Type"` //on-site or remote
+	IsActive    bool             `json:"IsActive"`
+	Industry    string           `json:"Industry"`
+	Talents     []JobApplication `gorm:"foreignKey:JobId" json:"Talents"`
+	CreatedAt   time.Time        `json:"CreatedAt"`
+	UpdatedAt   time.Time        `json:"UpdatedAt"`
+	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"DeletedAt"`
 }
 
 type JobApplication struct {
-	Id        string `gorm:"type:uuid;primaryKey"`
-	TalentId  string `gorm:"type:uuid;not null"`
-	JobId     string `gorm:"type:uuid;not null"`
-	CreatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	Id        string         `gorm:"type:uuid;primaryKey"`
+	TalentId  string         `gorm:"type:uuid;not null" json:"TalentId"`
+	JobId     string         `gorm:"type:uuid;not null" json:"JobId"`
+	CreatedAt time.Time      `json:"CreatedAt"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"DeletedAt"`
 }

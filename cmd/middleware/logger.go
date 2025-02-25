@@ -1,10 +1,10 @@
 package middleware
 
 import (
-	"log"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // LoggerMiddleware logs request details
@@ -14,12 +14,12 @@ func LoggerMiddleware() gin.HandlerFunc {
 
 		ctx.Next()
 
-		log.Printf("[%s] %s %s %d %s",
-			ctx.Request.Method,
-			ctx.Request.RequestURI,
-			ctx.ClientIP(),
-			ctx.Writer.Status(),
-			time.Since(startTime),
-		)
+		logrus.WithFields(logrus.Fields{
+			"status":    ctx.Writer.Status(),
+			"method":    ctx.Request.Method,
+			"path":      ctx.Request.URL.Path,
+			"client_IP": ctx.ClientIP(),
+			"duration":  time.Since(startTime),
+		}).Info("Request received")
 	}
 }

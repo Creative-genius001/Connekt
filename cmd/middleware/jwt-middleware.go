@@ -16,16 +16,14 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// Get the token from the "Authorization" header
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
-			ctx.Abort()
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token required"})
 			return
 		}
 
 		// Extract token after "Bearer "
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 		if tokenString == "" {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
-			ctx.Abort()
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token format"})
 			return
 		}
 
@@ -38,8 +36,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
-			ctx.Abort()
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			return
 		}
 
