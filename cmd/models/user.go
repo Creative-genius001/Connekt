@@ -36,6 +36,8 @@ type Talent struct {
 	UpdatedAt    time.Time
 }
 
+// Github Twitter LinkedIn, Portfolio Link
+
 type Employer struct {
 	Id                 string `gorm:"type:uuid;primaryKey;unique"`
 	FirstName          string
@@ -56,3 +58,5 @@ type Employer struct {
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 }
+
+//companyLogo, companyWebsite, companyTwitter, companyDescription

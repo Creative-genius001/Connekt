@@ -22,6 +22,15 @@ type Job struct {
 	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"DeletedAt"`
 }
 
+// "salary": {
+//                     "minValue": 195000,
+//                     "maxValue": 235000,
+//                     "unitText": "YEAR",
+//                     "currency": "USD"
+//                 },
+
+// remote bool
+
 type JobApplication struct {
 	Id        string         `gorm:"type:uuid;primaryKey"`
 	TalentId  string         `gorm:"type:uuid;not null" json:"TalentId"`

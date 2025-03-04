@@ -53,19 +53,9 @@ func ConnectDB() {
 		if res.Error != nil {
 			log.Fatal("Failed to insert data:", res.Error)
 		}
-		// if err := db.Create(&jobs).Error; err != nil {
-		// 	fmt.Println("Error seeding data:", err)
-		// } else {
-		// 	fmt.Println("Seeded user data successfully.")
-		// }
 	} else {
 		utils.Info("Users table already has data. Skipping seeding.", nil)
 	}
-
-	// err := db.WithContext(ctx).CreateInBatches(jobs, 100)
-	// if err != nil {
-	// 	utils.Error("Error inserting users: %v", err, nil)
-	// }
 
 	utils.Info("Successfully connected to PostgreSQL!", nil)
 	DB = db

@@ -12,5 +12,6 @@ func JobRoutes(router *gin.Engine) {
 
 	{
 		jobRouter.GET("/listings", controllers.GetJobListing)
+		jobRouter.GET("/:id", controllers.GetJobDetails)
 	}
 }
