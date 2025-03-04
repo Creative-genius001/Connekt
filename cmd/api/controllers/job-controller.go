@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetJobListing(ctx *gin.Context) {
+func GetAllJobs(ctx *gin.Context) {
 
 	id := ctx.Query("id")
 	limit := 10
@@ -44,7 +44,7 @@ func GetJobListing(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"jobs": jobs})
 }
 
-func GetJobDetails(ctx *gin.Context) {
+func GetSingleJob(ctx *gin.Context) {
 
 	id := ctx.Param("id")
 

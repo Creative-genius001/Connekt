@@ -11,7 +11,7 @@ func JobRoutes(router *gin.Engine) {
 	jobRouter.Use(middleware.JWTAuthMiddleware())
 
 	{
-		jobRouter.GET("/listings", controllers.GetJobListing)
-		jobRouter.GET("/:id", controllers.GetJobDetails)
+		jobRouter.GET("/listings", controllers.GetAllJobs)
+		jobRouter.GET("/:id", controllers.GetSingleJob)
 	}
 }
