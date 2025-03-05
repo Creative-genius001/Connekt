@@ -110,7 +110,7 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		//hash password
 		hashedPassword, err := utils.HashPassword(form.Password)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
 			return
 		}
 		talent.Password = hashedPassword
@@ -119,23 +119,21 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		//add user to database
 		res := config.DB.Create(&user)
 		if res.Error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
 			log.Fatalf("creating user in db failed: %v", res.Error)
 			return
 		}
 
 		result := config.DB.Create(&talent)
 		if result.Error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-			log.Fatalf("creating user in db failed: %v", result.Error)
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
 			return
 		}
 
 		//generate jwt token
-		token, err := utils.CreateToken(user.Role)
+		token, err := utils.CreateToken("talent")
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-			log.Fatalf("error creating jwt: %v", err)
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to generate token")
 			return
 		}
 
@@ -211,7 +209,7 @@ func RegisterAsEmployer(ctx *gin.Context) {
 		//hash password
 		hashedPassword, err := utils.HashPassword(form.Password)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
 			return
 		}
 		employer.Password = hashedPassword
@@ -240,7 +238,7 @@ func RegisterAsEmployer(ctx *gin.Context) {
 		}
 
 		//generate jwt token
-		token, err := utils.CreateToken(user.Role)
+		token, err := utils.CreateToken("employer")
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			log.Fatalf("error creating jwt: %v", err)

@@ -52,7 +52,7 @@ func GetSingleJob(ctx *gin.Context) {
 	result := config.DB.WithContext(ctx).Where("id = ?", id).First(&job)
 
 	if result.Error != nil {
-		utils.NotFoundErrorResponse(ctx, http.StatusNotFound, "Job not found")
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Job not found")
 		return
 	}
 

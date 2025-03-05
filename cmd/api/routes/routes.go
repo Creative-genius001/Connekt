@@ -7,5 +7,6 @@ import (
 
 func InitializeRoutes(router *gin.Engine) {
 	JobRoutes(router)
+	UserRoutes(router)
 	auth.AuthRoutes(router)
 }
