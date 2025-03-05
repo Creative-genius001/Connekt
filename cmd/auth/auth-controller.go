@@ -51,13 +51,10 @@ func Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user": gin.H{
-			"id":           user.Id,
-			"userId":       user.UserId,
-			"firstName":    user.FirstName,
-			"lastName":     user.LastName,
-			"email":        user.Email,
-			"profilePhoto": user.ProfilePhoto,
-			"role":         user.Role,
+			"id":     user.Id,
+			"userId": user.UserId,
+			"email":  user.Email,
+			"role":   user.Role,
 		},
 		"token": token,
 	})
@@ -81,23 +78,24 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		Password:     form.Password,
 		Country:      form.Country,
 		About:        form.About,
+		Role:         "talent",
 		State:        form.State,
 		Gender:       form.Gender,
 		Phone:        form.Phone,
-		Experience:   form.Experience,
-		CV:           form.CV,
 		ProfilePhoto: form.ProfilePhoto,
+		Website:      form.Website,
+		Twitter:      form.Twitter,
+		LinkedIn:     form.LinkedIn,
+		Facebook:     form.Facebook,
+		Github:       form.Github,
 	}
 
 	user := models.User{
-		Id:           uuid.New().String(),
-		UserId:       talent.Id,
-		FirstName:    form.FirstName,
-		LastName:     form.LastName,
-		Email:        form.Email,
-		Password:     form.Password,
-		ProfilePhoto: form.ProfilePhoto,
-		Role:         "talent",
+		Id:       uuid.New().String(),
+		UserId:   talent.Id,
+		Email:    form.Email,
+		Password: form.Password,
+		Role:     "talent",
 	}
 
 	//check if user already exist in db
@@ -155,48 +153,55 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 	}
 }
 
-// Register employer
-func RegisterAsEmployer(ctx *gin.Context) {
+// Register company
+func RegisterAsCompany(ctx *gin.Context) {
 	//get signup details from body
-	var form types.EmployerForm
+	var form types.CompanyForm
 	if err := ctx.ShouldBindJSON(&form); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 		return
 	}
 
-	employer := models.Employer{
-		Id:                 uuid.New().String(),
-		FirstName:          form.FirstName,
-		LastName:           form.LastName,
-		Email:              form.Email,
-		Password:           form.Password,
-		About:              form.About,
-		Gender:             form.Gender,
-		Phone:              form.Phone,
-		ProfilePhoto:       form.ProfilePhoto,
-		CompanyName:        form.CompanyName,
-		CompanyAddress:     form.CompanyAddress,
-		RegistrationNumber: form.RegistrationNumber,
-		EmployeeNumber:     form.EmployeeNumber,
-		Industry:           form.Industry,
+	id := uuid.New().String()
+
+	company := models.Company{
+		Id:             id,
+		Email:          form.Email,
+		Password:       form.Password,
+		About:          form.About,
+		Role:           "company",
+		Phone:          form.Phone,
+		CompanyLogo:    form.CompanyLogo,
+		CompanyName:    form.CompanyName,
+		CompanyAddress: form.CompanyAddress,
+		EmployeeNumber: form.EmployeeNumber,
+		Industry:       form.Industry,
+		Website:        form.Website,
+		Twitter:        form.Twitter,
+		LinkedIn:       form.LinkedIn,
+		Facebook:       form.Facebook,
+		Github:         form.Github,
+		Location: models.Location{
+			Id:        uuid.New().String(),
+			Country:   form.Country,
+			State:     form.State,
+			CompanyId: id,
+		},
 	}
 
 	location := models.Location{
-		Id:         uuid.New().String(),
-		Country:    form.Country,
-		State:      form.State,
-		EmployerId: employer.Id,
+		Id:        uuid.New().String(),
+		Country:   form.Country,
+		State:     form.State,
+		CompanyId: id,
 	}
 
 	user := models.User{
-		Id:           uuid.New().String(),
-		UserId:       employer.Id,
-		FirstName:    form.FirstName,
-		LastName:     form.LastName,
-		Email:        form.Email,
-		Password:     form.Password,
-		ProfilePhoto: form.ProfilePhoto,
-		Role:         "employer",
+		Id:       uuid.New().String(),
+		UserId:   company.Id,
+		Email:    form.Email,
+		Password: form.Password,
+		Role:     "company",
 	}
 
 	//check if user already exist in db
@@ -212,7 +217,7 @@ func RegisterAsEmployer(ctx *gin.Context) {
 			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
 			return
 		}
-		employer.Password = hashedPassword
+		company.Password = hashedPassword
 		user.Password = hashedPassword
 
 		//add user to database
@@ -223,7 +228,7 @@ func RegisterAsEmployer(ctx *gin.Context) {
 			return
 		}
 
-		result := config.DB.Create(&employer)
+		result := config.DB.Create(&company)
 		if result.Error != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
 			log.Fatalf("creating user in db failed: %v", result.Error)
@@ -238,7 +243,7 @@ func RegisterAsEmployer(ctx *gin.Context) {
 		}
 
 		//generate jwt token
-		token, err := utils.CreateToken("employer")
+		token, err := utils.CreateToken("company")
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 			log.Fatalf("error creating jwt: %v", err)
@@ -251,12 +256,9 @@ func RegisterAsEmployer(ctx *gin.Context) {
 		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully",
 			"user": gin.H{
-				"id":           employer.Id,
-				"firstName":    employer.FirstName,
-				"lastName":     employer.LastName,
-				"email":        employer.Email,
-				"profilePhoto": form.ProfilePhoto,
-				"role":         user.Role,
+				"id":    company.Id,
+				"email": company.Email,
+				"role":  user.Role,
 			},
 			"token": token,
 		})

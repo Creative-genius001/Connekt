@@ -7,34 +7,34 @@ import (
 )
 
 type Job struct {
-	Id          string           `gorm:"type:uuid;primaryKey;unique"`
-	EmployerId  string           `json:"EmployerId"`
-	Title       string           `json:"Title"`
-	Summary     string           `json:"Summary"`
-	Location    string           `json:"Location"`
-	CompanyName string           `json:"CompanyName"`
-	Type        string           `json:"Type"` //on-site or remote
-	IsActive    bool             `json:"IsActive"`
-	Industry    string           `json:"Industry"`
-	Talents     []JobApplication `gorm:"foreignKey:JobId" json:"Talents"`
-	CreatedAt   time.Time        `json:"CreatedAt"`
-	UpdatedAt   time.Time        `json:"UpdatedAt"`
-	DeletedAt   gorm.DeletedAt   `gorm:"index" json:"DeletedAt"`
+	Id            string  `gorm:"type:uuid;primaryKey;unique"`
+	CompanyId     string  `gorm:"foreignKey:CompanyId"`
+	Company       Company `gorm:"foreignKey:CompanyId"`
+	Title         string
+	Description   string
+	Remote        bool
+	IsActive      bool
+	Industry      string
+	Salary        *Salary          `gorm:"foreignKey:JobId"`
+	Applicantions []JobApplication `gorm:"foreignKey:JobId"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"DeletedAt"`
 }
 
-// "salary": {
-//                     "minValue": 195000,
-//                     "maxValue": 235000,
-//                     "unitText": "YEAR",
-//                     "currency": "USD"
-//                 },
-
-// remote bool
+type Salary struct {
+	MinValue string
+	MaxValue string
+	Currency string
+	JobId    string `gorm:"type:uuid;unique;not null"`
+	Job      *Job   `gorm:"constraint:OnDelete:CASCADE;"`
+}
 
 type JobApplication struct {
 	Id        string         `gorm:"type:uuid;primaryKey"`
 	TalentId  string         `gorm:"type:uuid;not null" json:"TalentId"`
 	JobId     string         `gorm:"type:uuid;not null" json:"JobId"`
+	Job       Job            `gorm:"foreignKey:JobId"`
 	CreatedAt time.Time      `json:"CreatedAt"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"DeletedAt"`
 }

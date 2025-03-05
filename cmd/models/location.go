@@ -5,10 +5,10 @@ import (
 )
 
 type Location struct {
-	Id         string `gorm:"type:uuid;primaryKey;unique"`
-	Country    string
-	State      string
-	EmployerId string
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	Id        string `gorm:"type:uuid;primaryKey;unique"`
+	Country   string
+	State     string
+	CompanyId string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

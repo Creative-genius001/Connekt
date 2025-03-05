@@ -14,7 +14,7 @@ func GetUserData(ctx *gin.Context) {
 	role := ctx.Query("role")
 
 	var talent models.Talent
-	var employer models.Employer
+	var company models.Company
 
 	switch role {
 	case "talent":
@@ -25,14 +25,14 @@ func GetUserData(ctx *gin.Context) {
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{"talent": talent})
-	case "employer":
-		result := config.DB.Where("id = ?", id).First(&employer)
+	case "company":
+		result := config.DB.Where("id = ?", id).First(&company)
 		if result.Error != nil {
 			utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"employer": employer})
+		ctx.JSON(http.StatusOK, gin.H{"company": company})
 	default:
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
 	}

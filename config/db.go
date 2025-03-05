@@ -35,27 +35,27 @@ func ConnectDB() {
 		utils.Error("Failed to connect to database:", err, nil)
 	}
 
-	err = db.AutoMigrate(&models.Employer{}, &models.Talent{}, &models.Location{}, &models.Job{}, &models.JobApplication{}, &models.User{})
+	err = db.AutoMigrate(&models.Company{}, &models.Talent{}, &models.Location{}, &models.Job{}, &models.JobApplication{}, &models.User{})
 	if err != nil {
 		utils.Error("Migration failed:", err, nil)
 	}
 
-	job, err := Seeding()
-	if err != nil {
-		utils.Error("Seeding failed:", err, nil)
-	}
+	// job, err := Seeding()
+	// if err != nil {
+	// 	utils.Error("Seeding failed:", err, nil)
+	// }
 
-	var jobs models.Job
-	var count int64
-	db.Model(&jobs).Count(&count)
-	if count == 0 {
-		res := db.CreateInBatches(job, 100)
-		if res.Error != nil {
-			log.Fatal("Failed to insert data:", res.Error)
-		}
-	} else {
-		utils.Info("Users table already has data. Skipping seeding.", nil)
-	}
+	// var jobs models.Job
+	// var count int64
+	// db.Model(&jobs).Count(&count)
+	// if count == 0 {
+	// 	res := db.CreateInBatches(job, 100)
+	// 	if res.Error != nil {
+	// 		log.Fatal("Failed to insert data:", res.Error)
+	// 	}
+	// } else {
+	// 	utils.Info("Users table already has data. Skipping seeding.", nil)
+	// }
 
 	utils.Info("Successfully connected to PostgreSQL!", nil)
 	DB = db

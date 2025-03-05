@@ -9,6 +9,6 @@ func AuthRoutes(router *gin.Engine) {
 	{
 		authGroup.POST("/login", Login)
 		authGroup.POST("/register/talent", RegisterAsJobSeeker)
-		authGroup.POST("/register/employer", RegisterAsEmployer)
+		authGroup.POST("/register/company", RegisterAsCompany)
 	}
 }
