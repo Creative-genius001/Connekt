@@ -10,15 +10,15 @@ type User struct {
 	Password string `gorm:"not null"`
 	Role     string `gorm:"type:varchar(20);not null"`
 
-	Talent    Talent  `gorm:"foreignKey:TalentId"`
-	Company   Company `gorm:"foreignKey:CompanyId"`
+	Talent    Talent  `gorm:"foreignKey:UserId"`
+	Company   Company `gorm:"foreignKey:UserId"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 type Talent struct {
 	Id           string `gorm:"type:uuid;primaryKey;unique"`
-	UserId       string `gorm:"foreignKey:UserId"`
+	UserId       string `gorm:"type:uuid;not null"`
 	FirstName    string
 	LastName     string
 	Gender       string
@@ -29,7 +29,7 @@ type Talent struct {
 	Phone        string
 	Website      *string
 	Twitter      *string
-	LinkedIn     *string
+	Linkedin     *string
 	Github       *string
 	AppliedJobs  []JobApplication `gorm:"foreignKey:TalentId"`
 	ProfilePhoto *string
@@ -37,9 +37,10 @@ type Talent struct {
 
 type Company struct {
 	Id             string `gorm:"type:uuid;primaryKey;unique"`
+	UserId         string `gorm:"type:uuid;not null"`
 	CompanyName    string
-	Location       Location `gorm:"foreignKey:EmployerId"`
-	Jobs           []Job    `gorm:"foreignKey:EmployerId"`
+	Location       Location `gorm:"foreignKey:CompanyId"`
+	Jobs           []Job    `gorm:"foreignKey:CompanyId"`
 	Phone          string
 	CompanyAddress string
 	EmployeeNumber uint64
@@ -48,5 +49,5 @@ type Company struct {
 	CompanyLogo    *string
 	Website        *string
 	Twitter        *string
-	LinkedIn       *string
+	Linkedin       *string
 }

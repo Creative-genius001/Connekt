@@ -17,7 +17,7 @@ type TalentForm struct {
 	Password     string  `form:"password" json:"password" binding:"required"`
 	Website      *string `form:"website" json:"website" binding:"required"`
 	Twitter      *string `form:"twitter" json:"twitter" binding:"required"`
-	LinkedIn     *string `form:"linkedIn" json:"linkedIn" binding:"required"`
+	Linkedin     *string `form:"linkedIn" json:"linkedIn" binding:"required"`
 	Github       *string `form:"github" json:"github" binding:"required"`
 	ProfilePhoto *string `form:"profilePhoto" json:"profilePhoto"`
 	City         string  `form:"city" json:"city" binding:"required"`
@@ -35,7 +35,7 @@ type CompanyForm struct {
 	Industry       string  `form:"industry" json:"industry" binding:"required"`
 	Website        *string `form:"website" json:"website" binding:"required"`
 	Twitter        *string `form:"twitter" json:"twitter" binding:"required"`
-	LinkedIn       *string `form:"linkedIn" json:"linkedIn" binding:"required"`
+	Linkedin       *string `form:"linkedIn" json:"linkedIn" binding:"required"`
 	Country        string  `form:"country" json:"country" binding:"required"`
 	State          string  `form:"state" json:"state" binding:"required"`
 	City           string  `form:"city" json:"city" binding:"required"`

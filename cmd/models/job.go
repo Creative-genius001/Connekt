@@ -7,8 +7,8 @@ import (
 )
 
 type Job struct {
-	Id            string  `gorm:"type:uuid;primaryKey;unique"`
-	CompanyId     string  `gorm:"foreignKey:CompanyId"`
+	Id            string `gorm:"type:uuid;primaryKey;unique"`
+	CompanyId     string
 	Company       Company `gorm:"foreignKey:CompanyId"`
 	Title         string
 	Description   string
@@ -19,7 +19,7 @@ type Job struct {
 	Applicantions []JobApplication `gorm:"foreignKey:JobId"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	DeletedAt     gorm.DeletedAt `gorm:"index" json:"DeletedAt"`
+	DeletedAt     gorm.DeletedAt `gorm:"index"`
 }
 
 type Salary struct {
@@ -31,10 +31,10 @@ type Salary struct {
 }
 
 type JobApplication struct {
-	Id        string         `gorm:"type:uuid;primaryKey"`
-	TalentId  string         `gorm:"type:uuid;not null" json:"TalentId"`
-	JobId     string         `gorm:"type:uuid;not null" json:"JobId"`
-	Job       Job            `gorm:"foreignKey:JobId"`
-	CreatedAt time.Time      `json:"CreatedAt"`
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"DeletedAt"`
+	Id        string `gorm:"type:uuid;primaryKey"`
+	TalentId  string `gorm:"type:uuid;not null"`
+	JobId     string `gorm:"type:uuid;not null"`
+	Job       Job    `gorm:"foreignKey:JobId"`
+	CreatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }

@@ -33,11 +33,13 @@ func ConnectDB() {
 	})
 	if err != nil {
 		utils.Error("Failed to connect to database:", err, nil)
+		os.Exit(1)
 	}
 
-	err = db.AutoMigrate(&models.Company{}, &models.Talent{}, &models.Location{}, &models.Job{}, &models.JobApplication{}, &models.User{})
+	err = db.AutoMigrate(&models.User{}, &models.Company{}, &models.Talent{}, &models.Location{}, &models.Job{}, &models.Salary{}, &models.JobApplication{})
 	if err != nil {
 		utils.Error("Migration failed:", err, nil)
+		os.Exit(1)
 	}
 
 	// job, err := Seeding()

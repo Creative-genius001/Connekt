@@ -82,7 +82,7 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		ProfilePhoto: form.ProfilePhoto,
 		Website:      form.Website,
 		Twitter:      form.Twitter,
-		LinkedIn:     form.LinkedIn,
+		Linkedin:     form.Linkedin,
 		Github:       form.Github,
 	}
 
@@ -170,7 +170,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 		Industry:       form.Industry,
 		Website:        form.Website,
 		Twitter:        form.Twitter,
-		LinkedIn:       form.LinkedIn,
+		Linkedin:       form.Linkedin,
 		Location: models.Location{
 			Id:        uuid.New().String(),
 			Country:   form.Country,
