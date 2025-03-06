@@ -51,10 +51,9 @@ func Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
 		"user": gin.H{
-			"id":     user.Id,
-			"userId": user.UserId,
-			"email":  user.Email,
-			"role":   user.Role,
+			"id":    user.Id,
+			"email": user.Email,
+			"role":  user.Role,
 		},
 		"token": token,
 	})
@@ -74,25 +73,22 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 		Id:           uuid.New().String(),
 		FirstName:    form.FirstName,
 		LastName:     form.LastName,
-		Email:        form.Email,
-		Password:     form.Password,
 		Country:      form.Country,
 		About:        form.About,
-		Role:         "talent",
 		State:        form.State,
+		City:         form.City,
 		Gender:       form.Gender,
 		Phone:        form.Phone,
 		ProfilePhoto: form.ProfilePhoto,
 		Website:      form.Website,
 		Twitter:      form.Twitter,
 		LinkedIn:     form.LinkedIn,
-		Facebook:     form.Facebook,
 		Github:       form.Github,
 	}
 
 	user := models.User{
 		Id:       uuid.New().String(),
-		UserId:   talent.Id,
+		Talent:   talent,
 		Email:    form.Email,
 		Password: form.Password,
 		Role:     "talent",
@@ -111,7 +107,6 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
 			return
 		}
-		talent.Password = hashedPassword
 		user.Password = hashedPassword
 
 		//add user to database
@@ -144,7 +139,7 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 				"id":           talent.Id,
 				"firstName":    talent.FirstName,
 				"lastName":     talent.LastName,
-				"email":        talent.Email,
+				"email":        user.Email,
 				"profilePhoto": form.ProfilePhoto,
 				"role":         user.Role,
 			},
@@ -155,7 +150,7 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 
 // Register company
 func RegisterAsCompany(ctx *gin.Context) {
-	//get signup details from body
+
 	var form types.CompanyForm
 	if err := ctx.ShouldBindJSON(&form); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
@@ -166,10 +161,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 
 	company := models.Company{
 		Id:             id,
-		Email:          form.Email,
-		Password:       form.Password,
 		About:          form.About,
-		Role:           "company",
 		Phone:          form.Phone,
 		CompanyLogo:    form.CompanyLogo,
 		CompanyName:    form.CompanyName,
@@ -179,29 +171,21 @@ func RegisterAsCompany(ctx *gin.Context) {
 		Website:        form.Website,
 		Twitter:        form.Twitter,
 		LinkedIn:       form.LinkedIn,
-		Facebook:       form.Facebook,
-		Github:         form.Github,
 		Location: models.Location{
 			Id:        uuid.New().String(),
 			Country:   form.Country,
 			State:     form.State,
+			City:      form.City,
 			CompanyId: id,
 		},
 	}
 
-	location := models.Location{
-		Id:        uuid.New().String(),
-		Country:   form.Country,
-		State:     form.State,
-		CompanyId: id,
-	}
-
 	user := models.User{
 		Id:       uuid.New().String(),
-		UserId:   company.Id,
 		Email:    form.Email,
 		Password: form.Password,
 		Role:     "company",
+		Company:  company,
 	}
 
 	//check if user already exist in db
@@ -217,7 +201,6 @@ func RegisterAsCompany(ctx *gin.Context) {
 			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
 			return
 		}
-		company.Password = hashedPassword
 		user.Password = hashedPassword
 
 		//add user to database
@@ -228,19 +211,19 @@ func RegisterAsCompany(ctx *gin.Context) {
 			return
 		}
 
-		result := config.DB.Create(&company)
-		if result.Error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-			log.Fatalf("creating user in db failed: %v", result.Error)
-			return
-		}
+		// result := config.DB.Create(&company)
+		// if result.Error != nil {
+		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+		// 	log.Fatalf("creating user in db failed: %v", result.Error)
+		// 	return
+		// }
 
-		ltn := config.DB.Create(&location)
-		if ltn.Error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-			log.Fatalf("creating user in db failed: %v", ltn.Error)
-			return
-		}
+		// ltn := config.DB.Create(&location)
+		// if ltn.Error != nil {
+		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
+		// 	log.Fatalf("creating user in db failed: %v", ltn.Error)
+		// 	return
+		// }
 
 		//generate jwt token
 		token, err := utils.CreateToken("company")
@@ -257,7 +240,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 			"message": "User registered successfully",
 			"user": gin.H{
 				"id":    company.Id,
-				"email": company.Email,
+				"email": user.Email,
 				"role":  user.Role,
 			},
 			"token": token,
