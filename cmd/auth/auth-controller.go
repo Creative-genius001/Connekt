@@ -117,11 +117,11 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 			return
 		}
 
-		result := config.DB.Create(&talent)
-		if result.Error != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
-			return
-		}
+		// result := config.DB.Create(&talent)
+		// if result.Error != nil {
+		// 	utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
+		// 	return
+		// }
 
 		//generate jwt token
 		token, err := utils.CreateToken("talent")
