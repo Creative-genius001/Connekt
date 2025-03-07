@@ -13,6 +13,9 @@ type Job struct {
 	Title         string
 	Description   string
 	Remote        bool
+	State         string
+	City          string
+	Country       string
 	IsActive      bool
 	Industry      string
 	Salary        *Salary          `gorm:"foreignKey:JobId"`
@@ -23,8 +26,9 @@ type Job struct {
 }
 
 type Salary struct {
-	MinValue string
-	MaxValue string
+	Id       string `gorm:"type:uuid;primaryKey;unique"`
+	MinValue float64
+	MaxValue float64
 	Currency string
 	JobId    string `gorm:"type:uuid;unique;not null"`
 	Job      *Job   `gorm:"constraint:OnDelete:CASCADE;"`

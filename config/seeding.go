@@ -13,8 +13,8 @@ var summaries = []string{"Developing scalable applications", "Analyzing large da
 var locations = []string{"New York, NY", "San Francisco, CA", "Austin, TX", "Boston, MA", "Chicago, IL"}
 var industries = []string{"Technology", "Finance", "Healthcare", "Education", "Retail"}
 var salary = models.Salary{
-	MinValue: "70000",
-	MaxValue: "250000",
+	MinValue: 70000,
+	MaxValue: 50000,
 	Currency: "USD",
 }
 

@@ -36,6 +36,20 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token claims"})
+			return
+		}
+
+		role, exists := claims["role"].(string)
+		if !exists {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Role not found in token"})
+			return
+		}
+
+		ctx.Set("role", role)
+
 		ctx.Next()
 	}
 }

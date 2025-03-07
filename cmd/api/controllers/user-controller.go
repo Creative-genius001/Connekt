@@ -11,30 +11,37 @@ import (
 
 func GetUserData(ctx *gin.Context) {
 	id := ctx.Param("id")
-	role := ctx.Query("role")
 
+	var user models.User
 	var talent models.Talent
 	var company models.Company
 
-	switch role {
-	case "talent":
-		result := config.DB.Where("id = ?", id).First(&talent)
-		if result.Error != nil {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
-			return
-		}
-
-		ctx.JSON(http.StatusOK, gin.H{"talent": talent})
-	case "company":
-		result := config.DB.Where("id = ?", id).First(&company)
-		if result.Error != nil {
-			utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
-			return
-		}
-
-		ctx.JSON(http.StatusOK, gin.H{"company": company})
-	default:
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Bad request"})
+	result := config.DB.Select("id, role").Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
+		return
 	}
+
+	if user.Role == "talent" {
+		result = config.DB.Where("user_id = ?", id).First(&talent)
+		if result.Error != nil {
+			utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
+			return
+		}
+		ctx.JSON(http.StatusOK, talent)
+		return
+	}
+
+	if user.Role == "company" {
+		result = config.DB.Where("user_id = ?", id).First(&company)
+		if result.Error != nil {
+			utils.ErrorResponse(ctx, http.StatusNotFound, "User not found")
+			return
+		}
+		ctx.JSON(http.StatusOK, company)
+		return
+	}
+
+	utils.ErrorResponse(ctx, http.StatusBadRequest, "User not found")
 
 }

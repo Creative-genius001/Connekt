@@ -18,7 +18,7 @@ func Login(ctx *gin.Context) {
 
 	//Bind the request body to a type
 	if err := ctx.ShouldBind(&form); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input")
 		return
 	}
 
@@ -30,20 +30,20 @@ func Login(ctx *gin.Context) {
 	result := config.DB.Where("email = ?", email).First(&user)
 
 	if result.Error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
 	//compare hashes
 	psw := utils.CheckPasswordHash(password, user.Password)
 	if !psw {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email or password"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid Credentials")
 		return
 	}
 
 	token, err := utils.CreateToken(user.Role)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 		return
 	}
 
@@ -60,12 +60,12 @@ func Login(ctx *gin.Context) {
 }
 
 // Register as job seeker
-func RegisterAsJobSeeker(ctx *gin.Context) {
+func RegisterAsTalent(ctx *gin.Context) {
 
 	//get signup details from body
 	var form types.TalentForm
 	if err := ctx.ShouldBindJSON(&form); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input")
 		return
 	}
 
@@ -98,35 +98,29 @@ func RegisterAsJobSeeker(ctx *gin.Context) {
 	var count int64
 	config.DB.Model(&user).Where("email = ?", form.Email).Count(&count)
 	if count > 0 {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email is already in use"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Email already exists")
 		return
 	} else {
 		//hash password
 		hashedPassword, err := utils.HashPassword(form.Password)
 		if err != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 			return
 		}
 		user.Password = hashedPassword
 
-		//add user to database
-		res := config.DB.Create(&user)
-		if res.Error != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
-			log.Fatalf("creating user in db failed: %v", res.Error)
-			return
-		}
-
-		// result := config.DB.Create(&talent)
-		// if result.Error != nil {
-		// 	utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed. User could not be created")
-		// 	return
-		// }
-
 		//generate jwt token
 		token, err := utils.CreateToken("talent")
 		if err != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to generate token")
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed! Server Error")
+			return
+		}
+
+		//add user to database
+		res := config.DB.Create(&user)
+		if res.Error != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed! Server Error")
+			log.Fatalf("creating user in db failed: %v", res.Error)
 			return
 		}
 
@@ -153,7 +147,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 
 	var form types.CompanyForm
 	if err := ctx.ShouldBindJSON(&form); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input")
 		return
 	}
 
@@ -198,38 +192,22 @@ func RegisterAsCompany(ctx *gin.Context) {
 		//hash password
 		hashedPassword, err := utils.HashPassword(form.Password)
 		if err != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to hash password")
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 			return
 		}
 		user.Password = hashedPassword
 
-		//add user to database
-		res := config.DB.Create(&user)
-		if res.Error != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-			log.Fatalf("creating user in db failed: %v", res.Error)
-			return
-		}
-
-		// result := config.DB.Create(&company)
-		// if result.Error != nil {
-		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-		// 	log.Fatalf("creating user in db failed: %v", result.Error)
-		// 	return
-		// }
-
-		// ltn := config.DB.Create(&location)
-		// if ltn.Error != nil {
-		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Signup Failed. User could not be created"})
-		// 	log.Fatalf("creating user in db failed: %v", ltn.Error)
-		// 	return
-		// }
-
 		//generate jwt token
 		token, err := utils.CreateToken("company")
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-			log.Fatalf("error creating jwt: %v", err)
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
+			return
+		}
+
+		//add user to database
+		res := config.DB.Create(&user)
+		if res.Error != nil {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed! Server Error")
 			return
 		}
 

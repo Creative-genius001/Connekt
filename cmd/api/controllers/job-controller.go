@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"net/http"
-	// "strconv"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
 	"github.com/Creative-genius001/Connekt/config"
+	"github.com/Creative-genius001/Connekt/types"
 	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func GetAllJobs(ctx *gin.Context) {
@@ -58,4 +59,63 @@ func GetSingleJob(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"job": job})
 
+}
+
+func CreateJob(ctx *gin.Context) {
+
+	companyId := ctx.Query("companyId")
+
+	role, exists := ctx.Get("role")
+	if !exists || role != "company" {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "User Unauthorized!")
+		return
+	}
+
+	var form types.CreateJobForm
+
+	if err := ctx.ShouldBindJSON(&form); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	id := uuid.New().String()
+
+	job := models.Job{
+		Id:          id,
+		CompanyId:   companyId,
+		State:       form.State,
+		Country:     form.Country,
+		Title:       form.Title,
+		Description: form.Description,
+		Remote:      form.Remote,
+		City:        form.City,
+		IsActive:    true,
+		Industry:    form.Industry,
+	}
+
+	salary := models.Salary{
+		Id:       uuid.New().String(),
+		JobId:    id,
+		MaxValue: form.MaxValue,
+		MinValue: form.MinValue,
+		Currency: form.Currency,
+	}
+
+	tx := config.DB.Begin()
+
+	if err := tx.Create(&job).Error; err != nil {
+		tx.Rollback()
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create job")
+		return
+	}
+
+	if err := tx.Create(&salary).Error; err != nil {
+		tx.Rollback()
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create job")
+		return
+	}
+
+	tx.Commit()
+
+	ctx.JSON(http.StatusCreated, gin.H{"message": "Job created successfully", "job": job})
 }
