@@ -12,6 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// get all jobs data
 func GetAllJobs(ctx *gin.Context) {
 
 	id := ctx.Query("id")
@@ -46,6 +47,7 @@ func GetAllJobs(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"jobs": jobs})
 }
 
+// get single job data
 func GetSingleJob(ctx *gin.Context) {
 
 	id := ctx.Param("id")
@@ -62,6 +64,7 @@ func GetSingleJob(ctx *gin.Context) {
 
 }
 
+// create a job posting
 func CreateJob(ctx *gin.Context) {
 
 	companyId := ctx.Query("companyId")
