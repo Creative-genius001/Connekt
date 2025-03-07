@@ -18,7 +18,7 @@ type Job struct {
 	Country       string
 	IsActive      bool
 	Industry      string
-	Salary        *Salary          `gorm:"foreignKey:JobId"`
+	Salary        Salary           `gorm:"foreignKey:JobId"`
 	Applicantions []JobApplication `gorm:"foreignKey:JobId"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -31,7 +31,6 @@ type Salary struct {
 	MaxValue float64
 	Currency string
 	JobId    string `gorm:"type:uuid;unique;not null"`
-	Job      *Job   `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type JobApplication struct {

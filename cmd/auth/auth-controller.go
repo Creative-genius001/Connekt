@@ -130,7 +130,8 @@ func RegisterAsTalent(ctx *gin.Context) {
 		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully",
 			"user": gin.H{
-				"id":           talent.Id,
+				"id":           user.Id,
+				"userId":       talent.Id,
 				"firstName":    talent.FirstName,
 				"lastName":     talent.LastName,
 				"email":        user.Email,
@@ -217,9 +218,10 @@ func RegisterAsCompany(ctx *gin.Context) {
 		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully",
 			"user": gin.H{
-				"id":    company.Id,
-				"email": user.Email,
-				"role":  user.Role,
+				"id":     user.Id,
+				"userId": company.Id,
+				"email":  user.Email,
+				"role":   user.Role,
 			},
 			"token": token,
 		})

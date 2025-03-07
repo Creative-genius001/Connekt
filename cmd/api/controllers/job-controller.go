@@ -9,6 +9,7 @@ import (
 	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 func GetAllJobs(ctx *gin.Context) {
@@ -80,6 +81,14 @@ func CreateJob(ctx *gin.Context) {
 
 	id := uuid.New().String()
 
+	salary := models.Salary{
+		Id:       uuid.New().String(),
+		JobId:    id,
+		MaxValue: form.MaxValue,
+		MinValue: form.MinValue,
+		Currency: form.Currency,
+	}
+
 	job := models.Job{
 		Id:          id,
 		CompanyId:   companyId,
@@ -91,31 +100,60 @@ func CreateJob(ctx *gin.Context) {
 		City:        form.City,
 		IsActive:    true,
 		Industry:    form.Industry,
+		Salary:      salary,
 	}
 
-	salary := models.Salary{
-		Id:       uuid.New().String(),
-		JobId:    id,
-		MaxValue: form.MaxValue,
-		MinValue: form.MinValue,
-		Currency: form.Currency,
-	}
-
-	tx := config.DB.Begin()
-
-	if err := tx.Create(&job).Error; err != nil {
-		tx.Rollback()
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create job")
+	if err := config.DB.Create(&job).Error; err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Unable to create job")
 		return
 	}
-
-	if err := tx.Create(&salary).Error; err != nil {
-		tx.Rollback()
-		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Failed to create job")
-		return
-	}
-
-	tx.Commit()
 
 	ctx.JSON(http.StatusCreated, gin.H{"message": "Job created successfully", "job": job})
+}
+
+// UpdateJob updates an existing job
+func UpdateJob(ctx *gin.Context) {
+	jobId := ctx.Param("id")
+	companyId := ctx.Query("companyId")
+
+	role, exists := ctx.Get("role")
+	if !exists || role != "company" {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	var job models.Job
+	if err := config.DB.Preload("Salary").Where("id = ?", jobId).First(&job).Error; err != nil {
+		utils.ErrorResponse(ctx, http.StatusNotFound, "Job not found")
+		return
+	}
+
+	if job.CompanyId != companyId {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "User Unauthorized")
+		return
+	}
+
+	var updateData types.UpdateJobForm
+	if err := ctx.ShouldBindJSON(&updateData); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	job.Title = updateData.Title
+	job.Description = updateData.Description
+	job.Remote = updateData.Remote
+	job.City = updateData.City
+	job.State = updateData.State
+	job.Country = updateData.Country
+	job.Industry = updateData.Industry
+	job.Salary.MaxValue = updateData.MaxValue
+	job.Salary.MinValue = updateData.MinValue
+	job.Salary.Currency = updateData.Currency
+
+	if err := config.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&job).Error; err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Error updating job")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Job updated successfully"})
 }
