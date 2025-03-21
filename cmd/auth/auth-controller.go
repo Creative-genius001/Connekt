@@ -41,7 +41,7 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-	token, err := utils.CreateToken(user.Role)
+	token, err := utils.CreateToken(user.Role, user.Id)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 		return
@@ -69,8 +69,9 @@ func RegisterAsTalent(ctx *gin.Context) {
 		return
 	}
 
+	id := uuid.New().String()
 	talent := models.Talent{
-		Id:           uuid.New().String(),
+		Id:           id,
 		FirstName:    form.FirstName,
 		LastName:     form.LastName,
 		Country:      form.Country,
@@ -110,7 +111,7 @@ func RegisterAsTalent(ctx *gin.Context) {
 		user.Password = hashedPassword
 
 		//generate jwt token
-		token, err := utils.CreateToken("talent")
+		token, err := utils.CreateToken("talent", user.Id)
 		if err != nil {
 			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed! Server Error")
 			return
@@ -199,7 +200,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 		user.Password = hashedPassword
 
 		//generate jwt token
-		token, err := utils.CreateToken("company")
+		token, err := utils.CreateToken("company", user.Id)
 		if err != nil {
 			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 			return
