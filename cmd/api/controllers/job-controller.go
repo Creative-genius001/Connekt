@@ -4,12 +4,13 @@ import (
 	"net/http"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
+	"github.com/Creative-genius001/Connekt/cmd/services"
 	"github.com/Creative-genius001/Connekt/config"
 	"github.com/Creative-genius001/Connekt/types"
 	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
+	//"gorm.io/gorm"
 )
 
 // get all jobs data
@@ -119,8 +120,8 @@ func UpdateJob(ctx *gin.Context) {
 	jobId := ctx.Param("id")
 	companyId := ctx.Query("companyId")
 
-	role, exists := ctx.Get("role")
-	if !exists || role != "company" {
+	_, exists := ctx.Get("role")
+	if !exists {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
 		return
 	}
@@ -153,10 +154,56 @@ func UpdateJob(ctx *gin.Context) {
 	job.Salary.MinValue = updateData.MinValue
 	job.Salary.Currency = updateData.Currency
 
-	if err := config.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&job).Error; err != nil {
+	tx := config.DB.Begin()
+
+	if err := tx.Save(&job).Error; err != nil {
+		tx.Rollback()
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Error updating job")
 		return
 	}
 
+	// Commit transaction
+	tx.Commit()
+
+	// if err := config.DB.Session(&gorm.Session{FullSaveAssociations: true}).Updates(&job).Error; err != nil {
+	// 	utils.ErrorResponse(ctx, http.StatusInternalServerError, "Error updating job")
+	// 	return
+	// }
+
 	ctx.JSON(http.StatusOK, gin.H{"message": "Job updated successfully"})
+}
+
+func ApplyToJob(ctx *gin.Context) {
+	jobID := ctx.Param("jobId")
+
+	talentId, exists := ctx.Get("id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	talentID, ok := talentId.(string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid talent ID format")
+		return
+	}
+
+	var applicationData types.JobApplicationForm
+
+	if err := ctx.ShouldBindJSON(&applicationData); err != nil {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid request data")
+		return
+	}
+
+	if err := services.ApplyToJob(jobID, talentID, applicationData.Resume, applicationData.Coverletter); err != nil {
+		if err.Error() == "job not found" {
+			utils.ErrorResponse(ctx, http.StatusNotFound, err.Error())
+		} else if err.Error() == "already applied for this job" {
+			utils.ErrorResponse(ctx, http.StatusConflict, err.Error())
+		} else {
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Error applying to job")
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Application submitted successfully"})
 }
