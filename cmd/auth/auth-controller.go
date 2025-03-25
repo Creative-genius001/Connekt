@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // Login function
@@ -41,7 +43,50 @@ func Login(ctx *gin.Context) {
 		return
 	}
 
-	token, err := utils.CreateToken(user.Role, user.Id)
+	var id string
+
+	switch user.Role {
+	case "talent":
+		err := config.DB.
+			Model(&models.Talent{}).
+			Select("id").
+			Where("user_id = ?", user.Id).
+			Scan(&user.Talent.Id).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.ErrorResponse(ctx, http.StatusConflict, "Not found")
+				return
+			} else {
+				log.Fatalf("Error getting company Id from DB: %s", err)
+				return
+			}
+		} else {
+			id = user.Talent.Id
+		}
+	case "company":
+		err := config.DB.
+			Model(&models.Company{}).
+			Select("id").
+			Where("user_id = ?", user.Id).
+			Scan(&user.Company.Id).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				utils.ErrorResponse(ctx, http.StatusConflict, "Not found")
+				return
+			} else {
+				log.Fatalf("Error getting company Id from DB: %s", err)
+				return
+			}
+		} else {
+			id = user.Talent.Id
+		}
+	default:
+		break
+	}
+
+	token, err := utils.CreateToken(user.Role, id)
 	if err != nil {
 		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
 		return
@@ -110,13 +155,6 @@ func RegisterAsTalent(ctx *gin.Context) {
 		}
 		user.Password = hashedPassword
 
-		//generate jwt token
-		token, err := utils.CreateToken("talent", user.Id)
-		if err != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Signup Failed! Server Error")
-			return
-		}
-
 		//add user to database
 		res := config.DB.Create(&user)
 		if res.Error != nil {
@@ -129,18 +167,7 @@ func RegisterAsTalent(ctx *gin.Context) {
 
 		//send token and user data back
 		ctx.JSON(http.StatusCreated, gin.H{
-			"message": "User registered successfully",
-			"user": gin.H{
-				"id":           user.Id,
-				"userId":       talent.Id,
-				"firstName":    talent.FirstName,
-				"lastName":     talent.LastName,
-				"email":        user.Email,
-				"profilePhoto": form.ProfilePhoto,
-				"role":         user.Role,
-			},
-			"token": token,
-		})
+			"message": "User registered successfully"})
 	}
 }
 
@@ -199,13 +226,6 @@ func RegisterAsCompany(ctx *gin.Context) {
 		}
 		user.Password = hashedPassword
 
-		//generate jwt token
-		token, err := utils.CreateToken("company", user.Id)
-		if err != nil {
-			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Server Error")
-			return
-		}
-
 		//add user to database
 		res := config.DB.Create(&user)
 		if res.Error != nil {
@@ -217,14 +237,6 @@ func RegisterAsCompany(ctx *gin.Context) {
 
 		//send token and user data back
 		ctx.JSON(http.StatusCreated, gin.H{
-			"message": "User registered successfully",
-			"user": gin.H{
-				"id":     user.Id,
-				"userId": company.Id,
-				"email":  user.Email,
-				"role":   user.Role,
-			},
-			"token": token,
-		})
+			"message": "User registered successfully"})
 	}
 }

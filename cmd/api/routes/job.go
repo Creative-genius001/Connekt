@@ -14,6 +14,6 @@ func JobRoutes(router *gin.Engine) {
 		jobRouter.GET("/:id", controllers.GetSingleJob)
 		jobRouter.POST("/create", middleware.JWTAuthMiddleware(), controllers.CreateJob)
 		jobRouter.PUT("/update/:id", middleware.JWTAuthMiddleware(), controllers.UpdateJob)
-		jobRouter.PUT("/apply", middleware.JWTAuthMiddleware(), controllers.ApplyToJob)
+		jobRouter.POST("/apply/:jobId", middleware.JWTAuthMiddleware(), controllers.ApplyToJob)
 	}
 }

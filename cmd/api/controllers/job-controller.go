@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
@@ -112,7 +113,7 @@ func CreateJob(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{"message": "Job created successfully", "job": job})
+	ctx.JSON(http.StatusCreated, gin.H{"message": "Job created successfully"})
 }
 
 // UpdateJob updates an existing job
@@ -175,6 +176,8 @@ func UpdateJob(ctx *gin.Context) {
 
 func ApplyToJob(ctx *gin.Context) {
 	jobID := ctx.Param("jobId")
+
+	fmt.Println("this is the job-id", jobID)
 
 	talentId, exists := ctx.Get("id")
 	if !exists {

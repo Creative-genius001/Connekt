@@ -17,8 +17,9 @@ func ApplyToJob(jobID, talentID, cv, coverLetter string) error {
 	if err := config.DB.Where("id = ?", jobID).First(&job).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("job not found")
+		} else {
+			return err
 		}
-		return err
 	}
 
 	// Check if the talent has already applied for this job
