@@ -12,7 +12,7 @@ type CreateJobForm struct {
 	City           string  `json:"city" binding:"required"`
 	State          string  `json:"state" binding:"required"`
 	Country        string  `json:"country" binding:"required"`
-	ApplicationUrl string  `json:"applicationUrl" binding:"required"`
+	ApplicationUrl *string `json:"applicationUrl"`
 }
 
 type UpdateJobForm struct {

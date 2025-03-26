@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
@@ -177,8 +176,6 @@ func UpdateJob(ctx *gin.Context) {
 func ApplyToJob(ctx *gin.Context) {
 	jobID := ctx.Param("jobId")
 
-	fmt.Println("this is the job-id", jobID)
-
 	talentId, exists := ctx.Get("id")
 	if !exists {
 		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
@@ -209,4 +206,65 @@ func ApplyToJob(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Application submitted successfully"})
+}
+
+func GetJobApplicants(ctx *gin.Context) {
+	jobId := ctx.Param("jobId")
+
+	companyId, exists := ctx.Get("id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	companyIdStr, ok := companyId.(string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID format")
+		return
+	}
+
+	// Verify user role
+	role, exists := ctx.Get("role")
+	if !exists || role != "company" {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "Forbidden: user is forbidden")
+		return
+	}
+
+	// Fetch job applicants from service
+	applicants, err := services.GetJobApplicants(jobId, companyIdStr)
+	if err != nil {
+		switch err.Error() {
+		case "error checking if user is authorized":
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Please try again")
+		case "unauthorized: company does not own this job":
+			utils.ErrorResponse(ctx, http.StatusForbidden, "Unauthorized: Company does not own this job")
+		default:
+			utils.ErrorResponse(ctx, http.StatusInternalServerError, "Error retrieving applicants")
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"applicants": applicants})
+}
+
+func GetMyApplications(ctx *gin.Context) {
+	talentId, exists := ctx.Get("id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	talentIdStr, ok := talentId.(string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusUnauthorized, "Invalid user ID format")
+		return
+	}
+
+	appliedJobs, err := services.GetMyApplications(talentIdStr)
+	if err != nil {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "unable to fetch jobs user has applied to")
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"jobs": appliedJobs})
 }

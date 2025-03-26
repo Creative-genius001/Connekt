@@ -51,39 +51,32 @@ func Login(ctx *gin.Context) {
 			Model(&models.Talent{}).
 			Select("id").
 			Where("user_id = ?", user.Id).
-			Scan(&user.Talent.Id).Error
+			Scan(&id).Error
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.ErrorResponse(ctx, http.StatusConflict, "Not found")
-				return
-			} else {
-				log.Fatalf("Error getting company Id from DB: %s", err)
+				log.Printf("Error fetching talent ID: %s", err)
+				utils.ErrorResponse(ctx, http.StatusInternalServerError, "Unable to get user data")
 				return
 			}
-		} else {
-			id = user.Talent.Id
 		}
 	case "company":
 		err := config.DB.
 			Model(&models.Company{}).
 			Select("id").
 			Where("user_id = ?", user.Id).
-			Scan(&user.Company.Id).Error
+			Scan(&id).Error
 
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
-				utils.ErrorResponse(ctx, http.StatusConflict, "Not found")
-				return
-			} else {
-				log.Fatalf("Error getting company Id from DB: %s", err)
+				log.Printf("Error fetching company ID: %s", err)
+				utils.ErrorResponse(ctx, http.StatusInternalServerError, "Unable to retrieve user data")
 				return
 			}
-		} else {
-			id = user.Talent.Id
 		}
 	default:
-		break
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid user role")
+		return
 	}
 
 	token, err := utils.CreateToken(user.Role, id)
@@ -165,7 +158,7 @@ func RegisterAsTalent(ctx *gin.Context) {
 
 		//send user email for successful registration
 
-		//send token and user data back
+		//send success message
 		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully"})
 	}
@@ -235,7 +228,7 @@ func RegisterAsCompany(ctx *gin.Context) {
 
 		//send user email for successful registration
 
-		//send token and user data back
+		//send success message
 		ctx.JSON(http.StatusCreated, gin.H{
 			"message": "User registered successfully"})
 	}
