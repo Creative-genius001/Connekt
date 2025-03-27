@@ -96,9 +96,10 @@ func UpdateUserData(ctx *gin.Context) {
 			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input data")
 			return
 		}
-		err := services.UpdateCompanyData(companyForm, IDStr)
+		err := services.UpdateCompanyData(companyForm, userID, IDStr)
 		if err != nil {
-
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "update failed try again")
+			return
 		}
 		ctx.JSON(200, gin.H{"message": "Updated successfully"})
 

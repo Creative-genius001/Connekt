@@ -79,6 +79,16 @@ func UpdateTalentData(Tdata types.UpdateTalentForm, userID, talentID string) err
 		return errors.New("no data provided")
 	}
 
+	var existingTalent models.Talent
+	if err := tx.Where("id = ? AND user_id = ?", talentID, userID).First(&existingTalent).Error; err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("company not found or not owned by user")
+		}
+		log.Printf("Database Error: %v", err)
+		return errors.New("database error")
+	}
+
 	// Update talent data
 	err := tx.Model(&models.Talent{}).Where("user_id = ? AND id = ?", userID, talentID).Updates(updates).Error
 
@@ -96,7 +106,91 @@ func UpdateTalentData(Tdata types.UpdateTalentForm, userID, talentID string) err
 	return nil
 }
 
-func UpdateCompanyData(Cdata types.UpdateCompanyForm, id string) error {
+func UpdateCompanyData(Cdata types.UpdateCompanyForm, userID, companyID string) error {
+	var user models.User
+
+	// Start transaction
+	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Fetch user data
+	if err := tx.Where("id = ?", userID).First(&user).Error; err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("user not found")
+		}
+		log.Printf("Error fetching user: %v", err)
+		return errors.New("internal server error")
+	}
+
+	updates := make(map[string]interface{})
+
+	if Cdata.CompanyName != nil {
+		updates["company_name"] = *Cdata.CompanyName
+	}
+	if Cdata.Phone != nil {
+		updates["phone"] = *Cdata.Phone
+	}
+	if Cdata.CompanyAddress != nil {
+		updates["company_address"] = *Cdata.CompanyAddress
+	}
+	if Cdata.EmployeeNumber != nil {
+		updates["employee_number"] = *Cdata.EmployeeNumber
+	}
+	if Cdata.Industry != nil {
+		updates["industry"] = *Cdata.Industry
+	}
+	if Cdata.About != nil {
+		updates["about"] = *Cdata.About
+	}
+
+	if Cdata.CompanyLogo != nil {
+		updates["company_logo"] = Cdata.CompanyLogo
+	}
+	if Cdata.Website != nil {
+		updates["website"] = Cdata.Website
+	}
+	if Cdata.Twitter != nil {
+		updates["twitter"] = Cdata.Twitter
+	}
+	if Cdata.Linkedin != nil {
+		updates["linkedin"] = Cdata.Linkedin
+	}
+
+	if len(updates) == 0 {
+		tx.Rollback()
+		return errors.New("no data provided")
+	}
+
+	// First verify the company exists and belongs to the user
+	var company models.Company
+	if err := tx.Where("id = ? AND user_id = ?", companyID, userID).First(&company).Error; err != nil {
+		tx.Rollback()
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("company not found or not owned by user")
+		}
+		log.Printf("Database Error: %v", err)
+		return errors.New("database error")
+	}
+
+	// Update company data
+	err := tx.Model(&models.Company{}).Where("id = ?", companyID).Updates(updates).Error
+
+	if err != nil {
+		tx.Rollback()
+		log.Printf("Error updating talent data: %v", err)
+		return errors.New("failed to update talent data")
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %v", err)
+		return errors.New("failed to complete update")
+	}
 	return nil
 }
 
