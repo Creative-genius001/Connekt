@@ -6,7 +6,9 @@ import (
 	"net/http"
 
 	"github.com/Creative-genius001/Connekt/cmd/models"
+	"github.com/Creative-genius001/Connekt/cmd/services"
 	"github.com/Creative-genius001/Connekt/config"
+	"github.com/Creative-genius001/Connekt/types"
 	"github.com/Creative-genius001/Connekt/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -54,5 +56,59 @@ func GetUserData(ctx *gin.Context) {
 }
 
 func UpdateUserData(ctx *gin.Context) {
-	//userId := ctx.Param("id")
+	role, exists := ctx.Get("role")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusForbidden, "Role not determined")
+		return
+	}
+
+	ID, exists := ctx.Get("id")
+	if !exists {
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid token")
+		return
+	}
+
+	IDStr, ok := ID.(string)
+	if !ok {
+		utils.ErrorResponse(ctx, http.StatusInternalServerError, "Invalid talent ID format")
+		return
+	}
+
+	userID := ctx.Param("id")
+
+	switch role {
+	case "talent":
+		var talentForm types.UpdateTalentForm
+		if err := ctx.ShouldBindJSON(&talentForm); err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input data")
+			return
+		}
+		err := services.UpdateTalentData(talentForm, userID, IDStr)
+		if err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "update failed try again")
+			return
+		}
+		ctx.JSON(200, gin.H{"message": "Updated successfully"})
+
+	case "company":
+		var companyForm types.UpdateCompanyForm
+		if err := ctx.ShouldBindJSON(&companyForm); err != nil {
+			utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid input data")
+			return
+		}
+		err := services.UpdateCompanyData(companyForm, IDStr)
+		if err != nil {
+
+		}
+		ctx.JSON(200, gin.H{"message": "Updated successfully"})
+
+	default:
+		utils.ErrorResponse(ctx, http.StatusForbidden, "update failed")
+	}
 }
+
+// func UpdateEmail(ctx *gin.Context) {
+// 	type Form struct {
+// 		Email *string `json:"email" binding:"required"`
+// 	}
+// }
