@@ -51,7 +51,7 @@ func GetUserData(ctx *gin.Context) {
 			"company": user.Company,
 		})
 	default:
-		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user role")
+		utils.ErrorResponse(ctx, http.StatusBadRequest, "Invalid user")
 	}
 }
 
